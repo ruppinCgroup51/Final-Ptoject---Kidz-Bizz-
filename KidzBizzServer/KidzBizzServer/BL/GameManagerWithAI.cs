@@ -204,6 +204,29 @@ namespace KidzBizzServer.BL
             }
         }
 
+        public double AIBuyProperty(int playerType)
+        {
+            // הרפתקן
+            if (playerType == 1)
+            {
+                return 0.7;
+
+            }
+            // מאוזן
+            else if (playerType == 2)
+            {
+                return 0.5;
+
+            }
+            else if (playerType == 3) {
+
+                return 0.3;
+            }
+            else
+            return 0;
+
+        }
+
         // מתודה קיימת לטיפול בנחיתה על משבצות מיוחדות
         public void HandleSlotActions(int currentPos, Player currentPlayer)
         {

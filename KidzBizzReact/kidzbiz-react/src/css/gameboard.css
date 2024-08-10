@@ -32,9 +32,17 @@ body {
   background: linear-gradient(#47b3a1, #d9eed9);
 }
 
-.current-player{
-  
+.current-player {
+  padding: 10px;
+  color: rgb(59, 5, 184);
+  font-weight: bold;
+  font-size: 20px;
+  right:1%;
+  position: absolute;
+  direction: rtl;
+
 }
+
 
 
 

@@ -58,6 +58,16 @@ namespace KidzBizzServer.Controllers
             }
         }
 
+        [HttpGet("AIBuyProperty")]
+        public ActionResult<double> GetAIBuyProperty(int playerType)
+        {
+            GameManagerWithAI gameManagerWithAI = new GameManagerWithAI();
+            // Call the AIBuyProperty method
+            double result = gameManagerWithAI.AIBuyProperty(playerType);
+
+            // Return the result
+            return Ok(result);
+        }
 
         [HttpPost("rolldice")]
         public IActionResult RollDice([FromBody] Player player)

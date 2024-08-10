@@ -134,15 +134,25 @@ const GameBoard = () => {
     }
   }, [currentPlayerIndex, players]);
 
-  //Automatically rolls dice and ends the turn if the current player is an AI (with userId 1016). Runs whenever currentPlayerIndex or players change.
-  useEffect(() => {
-    currentPlayerRef.current = currentPlayerIndex;
-    if (players[currentPlayerIndex]?.user.userId === 1016) {
+  // Automatically rolls dice and ends the turn if the current player is an AI (with userId 1016).
+// Runs whenever currentPlayerIndex or players change.
+useEffect(() => {
+  currentPlayerRef.current = currentPlayerIndex;
+  if (players[currentPlayerIndex]?.user.userId === 1016) {
+    setIsRollDiceDisabled(true);
+    const timer = setTimeout(() => {
       rollDice().then(() => {
         endTurn();
       });
-    }
-  }, [currentPlayerIndex, players]);
+    }, 8000); // 15000 milliseconds = 15 seconds
+
+    // Clear timeout if the component unmounts or if the effect runs again before the timer completes
+    return () => clearTimeout(timer);
+  } else {
+    setIsRollDiceDisabled(false);
+  }
+}, [currentPlayerIndex, players]);
+
 
   //Saves the players' state to local storage whenever it changes.
   useEffect(() => {
@@ -324,26 +334,33 @@ const GameBoard = () => {
   };
 
   const handlePropertySquareType = async (position, currentPlayer) => {
-    const apiUrl = getBaseApiUrl();
-    const fullUrl = `${apiUrl}Properties/CheckPropertyOwnership?propertyId=${position}&playerId=${
-      currentPlayer.playerId
-    }&playerAiId=${currentPlayer.playerId + 2}`;
-    const response = await fetch(fullUrl, {
-      method: "GET",
-      headers: { Accept: "application/json" },
-    });
-    const responseText = await response.text();
+  const apiUrl = getBaseApiUrl();
+  const fullUrl = `${apiUrl}Properties/CheckPropertyOwnership?propertyId=${position}&playerId=${
+    currentPlayer.playerId
+  }&playerAiId=${currentPlayer.playerId + 2}`;
+  const response = await fetch(fullUrl, {
+    method: "GET",
+    headers: { Accept: "application/json" },
+  });
+  const responseText = await response.text();
 
-    if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+  if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
 
-    const result = JSON.parse(responseText);
-    const owner = result.owner;
+  const result = JSON.parse(responseText);
+  const owner = result.owner;
 
-    if (owner === -1) {
-      // Property has no owner, fetch property details
-      isPlayerAI(currentPlayer)
-        ? setShowPropertyModal(false)
-        : setShowPropertyModal(true);
+  if (owner === -1) {
+    // Property has no owner, fetch property details
+    if (isPlayerAI(currentPlayer)) {
+      // AI buying logic based on type
+      const aiBuyProbability = await fetchAIBuyProperty(currentPlayer.playerType);
+      if (Math.random() < aiBuyProbability) {
+        // AI decides to buy the property
+        await handleBuyProperty(position, currentPlayer);
+      }
+    } else {
+      // For human player, show property modal
+      setShowPropertyModal(true);
       const propertyDetails = await fetchPropertyDetails(position);
       if (propertyDetails) {
         setCurrentProperty({
@@ -353,32 +370,64 @@ const GameBoard = () => {
           currentPlayer,
         });
       }
-    } /*else if (owner !== currentPlayer.playerId) {
-      const rentUrl = `${apiUrl}GameManagerWithAI/payRent`;
-      const rentResponse = await fetch(rentUrl, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          playerId: currentPlayer.playerId,
-          propertyOwnerId: owner,
-          propertyId: position,
-        }),
-      });
+    }
+  } /*else if (owner !== currentPlayer.playerId) {
+    const rentUrl = `${apiUrl}GameManagerWithAI/payRent`;
+    const rentResponse = await fetch(rentUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        playerId: currentPlayer.playerId,
+        propertyOwnerId: owner,
+        propertyId: position,
+      }),
+    });
 
-      if (rentResponse.ok) {
-       /* toast("Rent paid successfully!", { type: "info" });*/
-    /*const updatedPlayerResponse = await fetchPlayerData(
-          currentPlayer.playerId
-        );
-        if (updatedPlayerResponse.ok) {
-          const updatedPlayerData = await updatedPlayerResponse.json();
+    if (rentResponse.ok) {
+      /*toast("Rent paid successfully!", { type: "info" });
+
+      const updatedPlayerResponse = await fetchPlayerData(
+        currentPlayer.playerId
+      );
+
+      if (updatedPlayerResponse.ok) {
+        const updatedPlayerData = await updatedPlayerResponse.json();
+        
+        // Prevent infinite loop by ensuring setPlayers is not called unnecessarily
+        if (!deepEqual(players, updatedPlayerData)) { // deepEqual is a utility function to compare objects deeply
           updatePlayerDataInState(updatedPlayerData);
         }
-      } else {
-        toast("Failed to pay rent.", { type: "error" });
       }
-    }*/
-  };
+    } else {
+      toast("Failed to pay rent.", { type: "error" });
+    }
+  }*/
+};
+
+const fetchAIBuyProperty = async (playerType) => {
+  const apiUrl = getBaseApiUrl();
+  const fullUrl = `${apiUrl}GameManagerWithAI/AIBuyProperty?playerType=${playerType}`;
+  try {
+    const response = await fetch(fullUrl, {
+      method: "GET",
+      headers: { Accept: "application/json" },
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+
+    const probability = await response.json();
+    return probability;
+  } catch (error) {
+    console.error("Failed to fetch AI buy property probability:", error.message);
+    return 0; // If there's an error, default to 0 (won't buy)
+  }
+};
+
+const deepEqual = (obj1, obj2) => {
+  return JSON.stringify(obj1) === JSON.stringify(obj2);
+};
 
   const isPlayerAI = (player) => {
     return player.user.userId == 1016;
@@ -411,7 +460,7 @@ const GameBoard = () => {
     const buyResponse = await fetch(buyUrl, { method: "POST" });
 
     if (buyResponse.ok) {
-      toast("You have successfully bought the property!", { type: "success" });
+      toast("רכישת נכס בוצעה בהצלחה", { type: "success" });
       const updatedPlayerResponse = await fetchPlayerData(
         currentPlayer.playerId
       );
@@ -420,7 +469,7 @@ const GameBoard = () => {
         updatePlayerDataInState(updatedPlayerData);
       }
     } else {
-      toast("Failed to buy property.", { type: "error" });
+      toast("רכישת נכס לא צלחה", { type: "error" });
     }
 
     setShowPropertyModal(false);
@@ -500,23 +549,23 @@ const GameBoard = () => {
           await handleChanceSquareType(position, currentPlayer);
           break;
         case SquareType.DidYouKnow:
-          console.log("Did You Know? Time for a trivia question!");
+          console.log("הידעת? זמן לקצת טריוויה!");
           break;
         case SquareType.Go:
           break;
         case SquareType.Jail:
-          toast("You are just visiting jail this time.");
+          toast("עלייך להיכנס לכלא");
           break;
         case SquareType.GoToJail:
           toast("Go to Jail! Move directly to jail.");
           break;
         default:
-          toast(`You landed on a regular square.`, { type: "info" });
+          toast(`נחתת על משבצת רגילה`, { type: "info" });
           break;
       }
     } catch (error) {
       console.error("Error during square landing actions:", error);
-      toast("Error handling property action.", { type: "error" });
+      toast("בעיה בטיפול משבצת נכס", { type: "error" });
     } finally {
       isHandlingSquareLanding.current = false;
     }
