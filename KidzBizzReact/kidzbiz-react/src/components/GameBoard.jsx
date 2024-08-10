@@ -356,7 +356,9 @@ useEffect(() => {
       const aiBuyProbability = await fetchAIBuyProperty(currentPlayer.playerType);
       if (Math.random() < aiBuyProbability) {
         // AI decides to buy the property
-        await handleBuyProperty(position, currentPlayer);
+        await handleBuyPropertyAI(position, currentPlayer);
+      } else {
+        setShowPropertyModal(false);
       }
     } else {
       // For human player, show property modal
@@ -453,12 +455,12 @@ const deepEqual = (obj1, obj2) => {
     }
   };
 
-  const handleBuyProperty = async () => {
-    const { propertyId, currentPlayer } = currentProperty;
+  const handleBuyPropertyAI = async (propertyId, currentPlayer) => {
+    
     const apiUrl = getBaseApiUrl();
     const buyUrl = `${apiUrl}Properties/BuyProperty?PlayerId=${currentPlayer.playerId}&PropertyId=${propertyId}`;
     const buyResponse = await fetch(buyUrl, { method: "POST" });
-
+  
     if (buyResponse.ok) {
       toast("רכישת נכס בוצעה בהצלחה", { type: "success" });
       const updatedPlayerResponse = await fetchPlayerData(
@@ -471,7 +473,29 @@ const deepEqual = (obj1, obj2) => {
     } else {
       toast("רכישת נכס לא צלחה", { type: "error" });
     }
+  
+    setShowPropertyModal(false);
+  };
 
+  const handleBuyProperty = async () => {
+    const { propertyId, currentPlayer } = currentProperty;
+    const apiUrl = getBaseApiUrl();
+    const buyUrl = `${apiUrl}Properties/BuyProperty?PlayerId=${currentPlayer.playerId}&PropertyId=${propertyId}`;
+    const buyResponse = await fetch(buyUrl, { method: "POST" });
+  
+    if (buyResponse.ok) {
+      toast("רכישת נכס בוצעה בהצלחה", { type: "success" });
+      const updatedPlayerResponse = await fetchPlayerData(
+        currentPlayer.playerId
+      );
+      if (updatedPlayerResponse.ok) {
+        const updatedPlayerData = await updatedPlayerResponse.json();
+        updatePlayerDataInState(updatedPlayerData);
+      }
+    } else {
+      toast("רכישת נכס לא צלחה", { type: "error" });
+    }
+  
     setShowPropertyModal(false);
   };
 
