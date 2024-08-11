@@ -104,6 +104,7 @@ export default function Register() {
       </div>
       <div className="main-div">
         <h2>Register</h2>
+        <br/>
         <form onSubmit={handleSubmit}>
           <div>
             <label htmlFor="username">User Name:</label>
@@ -118,6 +119,7 @@ export default function Register() {
               <p style={{ color: "red" }}>{errors.username}</p>
             )}
           </div>
+          <br/>
           <div>
             <label htmlFor="password">Password:</label>
             <input
@@ -131,7 +133,7 @@ export default function Register() {
               <p style={{ color: "red" }}>{errors.password}</p>
             )}
           </div>
-
+          <br/>
           <div>
             <label htmlFor="firstName">First Name:</label>
             <input
@@ -145,6 +147,7 @@ export default function Register() {
               <p style={{ color: "red" }}>{errors.firstName}</p>
             )}
           </div>
+          <br/>
           <div>
             <label htmlFor="lastName">Last Name:</label>
             <input
@@ -158,6 +161,7 @@ export default function Register() {
               <p style={{ color: "red" }}>{errors.lastName}</p>
             )}
           </div>
+          <br/>
           <div>
             <label htmlFor="dateOfBirth">Date of Birth:</label>
             <input
@@ -171,6 +175,7 @@ export default function Register() {
               <p style={{ color: "red" }}>{errors.dateOfBirth}</p>
             )}
           </div>
+          <br/>
           <div>
             <label htmlFor="gender">Gender:</label>
             <select
@@ -186,6 +191,7 @@ export default function Register() {
             </select>
             {errors.gender && <p style={{ color: "red" }}>{errors.gender}</p>}
           </div>
+          <br/>
           <button className="button-29" type="submit">
             Proceed
           </button>

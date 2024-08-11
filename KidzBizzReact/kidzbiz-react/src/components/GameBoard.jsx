@@ -29,6 +29,7 @@ import { toast } from "react-toastify";
 import getBaseApiUrl from "./GetBaseApi";
 import "react-toastify/dist/ReactToastify.css";
 import { useNavigate } from "react-router-dom";
+import DidYouKnowCardModal from "./DidYouKnow.jsx";
 
 Modal.setAppElement("#root"); //sets the root element for the modals to improve accessibility
 
@@ -51,6 +52,7 @@ const GameBoard = () => {
   const [modalContent, setModalContent] = useState(""); //Content for the modal.
   const [cardData, setCardData] = useState(null); //Data for the surprise or chance card.
   const [showCard, setShowCard] = useState(false); //Control the visibility of the card and property modals.
+  const [showDidYouKnowCard, setshowDidYouKnowCard] = useState(false);
   const [showPropertyModal, setShowPropertyModal] = useState(false); //Control the visibility of the card and property modals.
   const [currentProperty, setCurrentProperty] = useState(null); //The property that is currently being viewed or bought
   const [gameId, SetGameId] = useState(0); // Unique identifier for the game session.
@@ -165,6 +167,7 @@ useEffect(() => {
   const endTurn = useCallback(() => {
     setIsModalVisible(false);
     setShowCard(false);
+    setshowDidYouKnowCard(false);
     setModalSquareIsOpen(false);
     setModalContent("");
     setCardData(null);
@@ -212,44 +215,52 @@ useEffect(() => {
   // sends a request to end the game, and displays the winner's name in an alert.
   // After that, it navigates back to the lobby.
   const handleEndGame = async () => {
-    try {
-      // Assuming players array has player and AI player at specific indexes
-      const playerId = players[0]?.playerId; // Assuming the first player is the human player
-      const playerAI = players[1]?.playerId; // Assuming the second player is the AI player
-      const gameIdInt = parseInt(gameId, 10);
-
-      // Construct the API URL with query parameters
-      const apiUrl = getApiUrl(
-        `api/endgame?gameId=${gameIdInt}&PlayerId=${playerId}&PlayerAI=${playerAI}`
-      );
-
-      // Call the API to end the game
-      const response = await fetch(apiUrl, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-
-      // Check if the response is okay
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+    // Display a confirmation modal
+    const userConfirmed = window.confirm("האם אתה בטוח שאתה רוצה לצאת מהמשחק?");
+    
+    if (userConfirmed) {
+      try {
+        // Assuming players array has player and AI player at specific indexes
+        const playerId = players[0]?.playerId; // Assuming the first player is the human player
+        const playerAI = players[1]?.playerId; // Assuming the second player is the AI player
+        const gameIdInt = parseInt(gameId, 10);
+  
+        // Construct the API URL with query parameters
+        const apiUrl = getApiUrl(
+          `api/endgame?gameId=${gameIdInt}&PlayerId=${playerId}&PlayerAI=${playerAI}`
+        );
+  
+        // Call the API to end the game
+        const response = await fetch(apiUrl, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+  
+        // Check if the response is okay
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+  
+        // Get the response data
+        const winner = await response.json();
+  
+        // Display a message with the winner's name or other details
+        alert(`${winner.user.username} המשחק נגמר !! המנצח הוא `);
+  
+        // After displaying the message, navigate back to the lobby
+        navigate("/Lobi");
+      } catch (error) {
+        console.error("Error ending game:", error);
+        alert("An error occurred while trying to end the game.");
       }
-
-      // Get the response data
-      const winner = await response.json();
-
-      // Display a message with the winner's name or other details
-      alert(`The game has ended. The winner is ${winner.user.username}.`);
-
-      // After displaying the message, navigate back to the lobby
-      navigate("/Lobi");
-    } catch (error) {
-      console.error("Error ending game:", error);
-      alert("An error occurred while trying to end the game.");
+    } else {
+      // If the user cancels, just close the pop-up and do nothing
+      console.log("User chose to continue the game.");
     }
   };
-
+  
   //This function displays the appropriate card modal (Surprise or Chance) based on the type and the player who landed on the square.
   // The modal is shown only if the current player matches the player passed to the function.
   const handleShowCard = (player, type, data) => {
@@ -263,6 +274,7 @@ useEffect(() => {
   const handleCloseCard = () => {
     setIsModalVisible(false);
     setShowCard(false);
+    setshowDidYouKnowCard(false);
     setModalSquareIsOpen(false);
   };
 
@@ -474,6 +486,7 @@ const deepEqual = (obj1, obj2) => {
     }
   
     setShowPropertyModal(false);
+    
   };
 
   const handleBuyProperty = async () => {
@@ -490,12 +503,15 @@ const deepEqual = (obj1, obj2) => {
       if (updatedPlayerResponse.ok) {
         const updatedPlayerData = await updatedPlayerResponse.json();
         updatePlayerDataInState(updatedPlayerData);
+       
       }
     } else {
       toast("רכישת נכס לא צלחה", { type: "error" });
+      
     }
   
     setShowPropertyModal(false);
+   
   };
 
   const fetchPlayerData = (playerId) => {
@@ -553,6 +569,26 @@ const deepEqual = (obj1, obj2) => {
     isPlayerAI(currentPlayer) ? setShowCard(false) : setShowCard(true);
   };
 
+
+  const handleDidYouKnowSquareType = async (position, currentPlayer) => {
+    const apiUrl = getBaseApiUrl();
+    const fullUrl = `${apiUrl}Cards/didyouknow`;
+    const response = await fetch(fullUrl, {
+      method: "GET",
+      headers: { Accept: "application/json" },
+    });
+    const responseText = await response.text();
+
+    if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+
+    const result = JSON.parse(responseText);
+    setCardData(result);
+
+    isPlayerAI(currentPlayer) ? setshowDidYouKnowCard(false) : setshowDidYouKnowCard(true);
+  };
+
+
+
   const handleSquareLanding = useCallback(async (currentPlayer) => {
     if (isHandlingSquareLanding.current) return;
 
@@ -572,7 +608,7 @@ const deepEqual = (obj1, obj2) => {
           await handleChanceSquareType(position, currentPlayer);
           break;
         case SquareType.DidYouKnow:
-          console.log("הידעת? זמן לקצת טריוויה!");
+          await handleDidYouKnowSquareType(position, currentPlayer);
           break;
         case SquareType.Go:
           break;
@@ -725,7 +761,7 @@ const deepEqual = (obj1, obj2) => {
 
       <BootstrapModal show={modalSquareIsOpen} onHide={handleCloseCard}>
         <h2>{modalContent}</h2>
-        <button onClick={handleCloseCard}>Close</button>
+        <button onClick={handleCloseCard}>סגור</button>
       </BootstrapModal>
 
       {isModalVisible && (
@@ -737,6 +773,12 @@ const deepEqual = (obj1, obj2) => {
           onHide={handleCloseCard}
           cardData={cardData}
         />
+      )}
+      {showDidYouKnowCard && (
+        <DidYouKnowCardModal
+         show = {showDidYouKnowCard}
+         onHide={handleCloseCard}
+         cardData={cardData} />
       )}
       {currentProperty && (
         <PropertyModal
