@@ -352,14 +352,13 @@ useEffect(() => {
   if (owner === -1) {
     // Property has no owner, fetch property details
     if (isPlayerAI(currentPlayer)) {
+      setShowPropertyModal(false);
       // AI buying logic based on type
       const aiBuyProbability = await fetchAIBuyProperty(currentPlayer.playerType);
       if (Math.random() < aiBuyProbability) {
         // AI decides to buy the property
         await handleBuyPropertyAI(position, currentPlayer);
-      } else {
-        setShowPropertyModal(false);
-      }
+      } 
     } else {
       // For human player, show property modal
       setShowPropertyModal(true);
@@ -533,8 +532,8 @@ const deepEqual = (obj1, obj2) => {
     setCardData(result);
 
     isPlayerAI(currentPlayer)
-      ? setIsModalVisible(true)
-      : setIsModalVisible(false);
+      ? setIsModalVisible(false)
+      : setIsModalVisible(true);
   };
 
   const handleChanceSquareType = async (position, currentPlayer) => {
@@ -551,7 +550,7 @@ const deepEqual = (obj1, obj2) => {
     const result = JSON.parse(responseText);
     setCardData(result);
 
-    isPlayerAI(currentPlayer) ? setShowCard(true) : setShowCard(false);
+    isPlayerAI(currentPlayer) ? setShowCard(false) : setShowCard(true);
   };
 
   const handleSquareLanding = useCallback(async (currentPlayer) => {
