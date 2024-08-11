@@ -47,21 +47,21 @@ export const GameSquare = ({ id, players }) => {
   const getAvatarStyle = (position) => {
     if (position >= 1 && position <= 11) {
       return {
-        top: "0.1px",
+        top: "-30px",
       };
     } else if (position > 11 && position <= 21) {
       return {
         right: "110px",
-        top:"5px"
+        top: "-50px",
       };
     } else if (position > 21 && position <= 31) {
       return {
-        bottom: "70px",
+        top: "-50px",
       };
     } else if (position > 31 && position <= 40) {
       return {
-        left: "110px",
-        top:"5px"
+        left: "65px",
+        top: "-50px",
       };
     }
     return {};

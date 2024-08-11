@@ -1,56 +1,61 @@
 /* General Modal Styling */
 .chance-card-modal .modal-content {
-    direction: rtl; /* Right-to-left text direction */
-    background-color: #b32e4f; /* Light grey background */
-    border-radius: 8px; /* Rounded corners */
-    padding: 20px; /* Padding inside the modal */
-  }
-  
-  /* Title Styling */
-  .chance-card-modal .modal-header {
-    border-bottom: none; /* Remove the default border under the header */
-  }
-  
-  .chance-card-modal .modal-title {
-    width: 100%; /* Full width to center the title correctly */
-    text-align: center; /* Center the title text */
-    font-size: 30px; /* Larger font size for the title */
-    font-weight: bold; /* Make the title bold */
-    color:white;
-  }
-  
-  /* Ensure the modal footer does not have a border */
-  .chance-card-modal .modal-footer {
-    border-top: none;
-  }
-    
-  /* Modal body styling */
-  .chance-card-modal .modal-body p {
-    color: #ffffff; /* Dark grey text color for readability */
-    margin-bottom: 10px; /* Space between paragraphs */
-  }
-  
-  /* Strong tag within modal body to highlight labels */
-  .chance-card-modal .modal-body strong {
-    font-weight: bold;
-    font-size: 15px;
-    color: #f28ff2; /* Bootstrap primary blue for emphasis */
-  }
-  
-  /* Modal footer styling */
-  .chance-card-modal .modal-footer {
-    background-color: #b32e4f; /* Light background in the footer to distinguish it */
-  }
-  
-  /* Button styling in the footer */
-  .chance-card-modal .modal-footer .btn-secondary {
-    background-color:#f28ff2;
-  }
+  direction: rtl; /* Right-to-left text direction */
+  background-color: #b32e4f; /* Light grey background */
+  border-radius: 8px; /* Rounded corners */
+  padding: 20px; /* Padding inside the modal */
+}
 
-  .chance-card-modal .modal-body p {
-    text-align: right; /* Ensures text aligns to the right */
-    padding-right: 20px; /* Uniform padding from the right side */
-    margin-bottom: 10px; /* Consistent space between paragraphs */
-  }
-  
-  
+/* Title Styling */
+.chance-card-modal .modal-header {
+  border-bottom: none; /* Remove the default border under the header */
+}
+
+.chance-card-modal .modal-title {
+  width: 100%; /* Full width to center the title correctly */
+  text-align: center; /* Center the title text */
+  font-size: 30px; /* Larger font size for the title */
+  font-weight: bold; /* Make the title bold */
+  color: white;
+}
+
+/* Ensure the modal footer does not have a border */
+.chance-card-modal .modal-footer {
+  border-top: none;
+}
+
+/* Modal body styling */
+.chance-card-modal .modal-body p {
+  color: #ffffff; /* Dark grey text color for readability */
+  margin-bottom: 10px; /* Space between paragraphs */
+}
+
+/* Strong tag within modal body to highlight labels */
+.chance-card-modal .modal-body strong {
+  font-weight: bold;
+  font-size: 15px;
+  color: #f28ff2; /* Bootstrap primary blue for emphasis */
+}
+
+/* Modal footer styling */
+.chance-card-modal .modal-footer {
+  background-color: #b32e4f; /* Light background in the footer to distinguish it */
+}
+
+/* Button styling in the footer */
+.chance-card-modal .modal-footer .btn-secondary {
+  background-color: #f28ff2;
+}
+
+.chance-card-modal .modal-body p {
+  text-align: right; /* Ensures text aligns to the right */
+  padding-right: 20px; /* Uniform padding from the right side */
+  margin-bottom: 10px; /* Consistent space between paragraphs */
+}
+.answer-button {
+  margin-right: 20px;
+}
+
+.answer-button:last-child {
+  margin-right: 0;
+}

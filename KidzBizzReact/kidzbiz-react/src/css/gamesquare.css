@@ -5,6 +5,8 @@
   align-items: center;
   flex-wrap: wrap;
   pointer-events: none; /* Ensure avatars do not interfere with cell interactions */
+  width: 100%; /* Ensure it spans the full width of the square */
+  /* Ensure it spans the full height of the square */
 }
 
 .avatar {
@@ -14,4 +16,14 @@
   pointer-events: all; /* Allows avatars to be interactive */
   z-index: 10; /* Ensure avatars are above other elements */
   position: absolute;
+  top: 0%; /* Adjust this to fine-tune vertical position */
+  left: 50%; /* Center the avatar horizontally within player-container */
+  transform: translate(
+    -50%,
+    -50%
+  ); /* Offset by half its width/height for perfect centering */
+}
+
+.avatar {
+  border: 1px solid black; /* Temporary border to see the avatar's position */
 }

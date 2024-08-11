@@ -137,24 +137,21 @@ const GameBoard = () => {
   }, [currentPlayerIndex, players]);
 
   // Automatically rolls dice and ends the turn if the current player is an AI (with userId 1016).
-// Runs whenever currentPlayerIndex or players change.
-useEffect(() => {
-  currentPlayerRef.current = currentPlayerIndex;
-  if (players[currentPlayerIndex]?.user.userId === 1016) {
-    setIsRollDiceDisabled(true);
-    const timer = setTimeout(() => {
-      rollDice().then(() => {
-        endTurn();
-      });
-    }, 8000); // 15000 milliseconds = 15 seconds
+  // Runs whenever currentPlayerIndex or players change.
+  useEffect(() => {
+    currentPlayerRef.current = currentPlayerIndex;
+    if (players[currentPlayerIndex]?.user.userId === 1016) {
+      setIsRollDiceDisabled(true);
+      const timer = setTimeout(() => {
+        rollDice().then(() => {
+          endTurn();
+        });
+      }, 2000); // 15000 milliseconds = 15 seconds
 
-    // Clear timeout if the component unmounts or if the effect runs again before the timer completes
-    return () => clearTimeout(timer);
-  } else {
-    setIsRollDiceDisabled(false);
-  }
-}, [currentPlayerIndex, players]);
-
+      // Clear timeout if the component unmounts or if the effect runs again before the timer completes
+      return () => clearTimeout(timer);
+    }
+  }, [currentPlayerIndex, players]);
 
   //Saves the players' state to local storage whenever it changes.
   useEffect(() => {
@@ -164,13 +161,15 @@ useEffect(() => {
   //This function ends the current player's turn.
   // It resets various modal and card states and updates the currentPlayerIndex to the next player.
   // The next player is calculated by incrementing the index and wrapping around using the modulo operator.
-  const endTurn = useCallback(() => {
+  const endTurn = () => {
     setIsModalVisible(false);
     setShowCard(false);
     setshowDidYouKnowCard(false);
     setModalSquareIsOpen(false);
     setModalContent("");
     setCardData(null);
+    setIsRollDiceDisabled(false);
+    setShowPropertyModal(false);
 
     // Log before updating the index to track changes
     console.log(
@@ -183,7 +182,7 @@ useEffect(() => {
 
     // Log after updating to ensure the state is updated
     console.log("currentPlayerIndex updated");
-  }, [players.length]);
+  };
 
   //n: This function handles the event when a player clicks the "Roll Dice" button.
   // It disables the "Roll Dice" button, enables the "End Turn" button,
@@ -206,7 +205,6 @@ useEffect(() => {
     }
     setPlayers(updatedPlayers);
     endTurn();
-    setIsRollDiceDisabled(false);
     setIsEndTurnDisabled(true);
     setDisplayDice(1016);
   };
@@ -217,19 +215,19 @@ useEffect(() => {
   const handleEndGame = async () => {
     // Display a confirmation modal
     const userConfirmed = window.confirm("האם אתה בטוח שאתה רוצה לצאת מהמשחק?");
-    
+
     if (userConfirmed) {
       try {
         // Assuming players array has player and AI player at specific indexes
         const playerId = players[0]?.playerId; // Assuming the first player is the human player
         const playerAI = players[1]?.playerId; // Assuming the second player is the AI player
         const gameIdInt = parseInt(gameId, 10);
-  
+
         // Construct the API URL with query parameters
         const apiUrl = getApiUrl(
           `api/endgame?gameId=${gameIdInt}&PlayerId=${playerId}&PlayerAI=${playerAI}`
         );
-  
+
         // Call the API to end the game
         const response = await fetch(apiUrl, {
           method: "POST",
@@ -237,18 +235,18 @@ useEffect(() => {
             "Content-Type": "application/json",
           },
         });
-  
+
         // Check if the response is okay
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
-  
+
         // Get the response data
         const winner = await response.json();
-  
+
         // Display a message with the winner's name or other details
         alert(`${winner.user.username} המשחק נגמר !! המנצח הוא `);
-  
+
         // After displaying the message, navigate back to the lobby
         navigate("/Lobi");
       } catch (error) {
@@ -260,15 +258,15 @@ useEffect(() => {
       console.log("User chose to continue the game.");
     }
   };
-  
+
   //This function displays the appropriate card modal (Surprise or Chance) based on the type and the player who landed on the square.
   // The modal is shown only if the current player matches the player passed to the function.
-  const handleShowCard = (player, type, data) => {
-    if (currentPlayerIndex !== players.indexOf(player)) return;
-    setCardData(data);
-    if (type === "surprise") setIsModalVisible(true);
-    else if (type === "chance") setShowCard(true);
-  };
+  // const handleShowCard = (player, type, data) => {
+  //   if (currentPlayerIndex !== players.indexOf(player)) return;
+  //   setCardData(data);
+  //   if (type === "surprise") setIsModalVisible(true);
+  //   else if (type === "chance") setShowCard(true);
+  // };
 
   //This function closes any open card modals.
   const handleCloseCard = () => {
@@ -346,45 +344,48 @@ useEffect(() => {
   };
 
   const handlePropertySquareType = async (position, currentPlayer) => {
-  const apiUrl = getBaseApiUrl();
-  const fullUrl = `${apiUrl}Properties/CheckPropertyOwnership?propertyId=${position}&playerId=${
-    currentPlayer.playerId
-  }&playerAiId=${currentPlayer.playerId + 2}`;
-  const response = await fetch(fullUrl, {
-    method: "GET",
-    headers: { Accept: "application/json" },
-  });
-  const responseText = await response.text();
+    const apiUrl = getBaseApiUrl();
+    const fullUrl = `${apiUrl}Properties/CheckPropertyOwnership?propertyId=${position}&playerId=${
+      currentPlayer.playerId
+    }&playerAiId=${currentPlayer.playerId + 2}`;
+    const response = await fetch(fullUrl, {
+      method: "GET",
+      headers: { Accept: "application/json" },
+    });
+    const responseText = await response.text();
 
-  if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+    if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
 
-  const result = JSON.parse(responseText);
-  const owner = result.owner;
+    const result = JSON.parse(responseText);
+    const owner = result.owner;
 
-  if (owner === -1) {
-    // Property has no owner, fetch property details
-    if (isPlayerAI(currentPlayer)) {
-      setShowPropertyModal(false);
-      // AI buying logic based on type
-      const aiBuyProbability = await fetchAIBuyProperty(currentPlayer.playerType);
-      if (Math.random() < aiBuyProbability) {
-        // AI decides to buy the property
-        await handleBuyPropertyAI(position, currentPlayer);
-      } 
-    } else {
-      // For human player, show property modal
-      setShowPropertyModal(true);
-      const propertyDetails = await fetchPropertyDetails(position);
-      if (propertyDetails) {
-        setCurrentProperty({
-          propertyId: position,
-          propertyName: propertyDetails.propertyName,
-          propertyPrice: propertyDetails.propertyPrice,
-          currentPlayer,
-        });
+    if (owner === -1) {
+      // Property has no owner, fetch property details
+
+      if (isPlayerAI(currentPlayer)) {
+        setShowPropertyModal(false);
+        // AI buying logic based on type
+        const aiBuyProbability = await fetchAIBuyProperty(
+          currentPlayer.playerType
+        );
+        if (Math.random() < aiBuyProbability) {
+          // AI decides to buy the property
+          await handleBuyPropertyAI(position, currentPlayer);
+        }
+      } else {
+        // For human player, show property modal
+        setShowPropertyModal(true);
+        const propertyDetails = await fetchPropertyDetails(position);
+        if (propertyDetails) {
+          setCurrentProperty({
+            propertyId: position,
+            propertyName: propertyDetails.propertyName,
+            propertyPrice: propertyDetails.propertyPrice,
+            currentPlayer,
+          });
+        }
       }
-    }
-  } /*else if (owner !== currentPlayer.playerId) {
+    } /*else if (owner !== currentPlayer.playerId) {
     const rentUrl = `${apiUrl}GameManagerWithAI/payRent`;
     const rentResponse = await fetch(rentUrl, {
       method: "POST",
@@ -415,32 +416,35 @@ useEffect(() => {
       toast("Failed to pay rent.", { type: "error" });
     }
   }*/
-};
+  };
 
-const fetchAIBuyProperty = async (playerType) => {
-  const apiUrl = getBaseApiUrl();
-  const fullUrl = `${apiUrl}GameManagerWithAI/AIBuyProperty?playerType=${playerType}`;
-  try {
-    const response = await fetch(fullUrl, {
-      method: "GET",
-      headers: { Accept: "application/json" },
-    });
+  const fetchAIBuyProperty = async (playerType) => {
+    const apiUrl = getBaseApiUrl();
+    const fullUrl = `${apiUrl}GameManagerWithAI/AIBuyProperty?playerType=${playerType}`;
+    try {
+      const response = await fetch(fullUrl, {
+        method: "GET",
+        headers: { Accept: "application/json" },
+      });
 
-    if (!response.ok) {
-      throw new Error(`HTTP error! Status: ${response.status}`);
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+
+      const probability = await response.json();
+      return probability;
+    } catch (error) {
+      console.error(
+        "Failed to fetch AI buy property probability:",
+        error.message
+      );
+      return 0; // If there's an error, default to 0 (won't buy)
     }
+  };
 
-    const probability = await response.json();
-    return probability;
-  } catch (error) {
-    console.error("Failed to fetch AI buy property probability:", error.message);
-    return 0; // If there's an error, default to 0 (won't buy)
-  }
-};
-
-const deepEqual = (obj1, obj2) => {
-  return JSON.stringify(obj1) === JSON.stringify(obj2);
-};
+  const deepEqual = (obj1, obj2) => {
+    return JSON.stringify(obj1) === JSON.stringify(obj2);
+  };
 
   const isPlayerAI = (player) => {
     return player.user.userId == 1016;
@@ -467,11 +471,10 @@ const deepEqual = (obj1, obj2) => {
   };
 
   const handleBuyPropertyAI = async (propertyId, currentPlayer) => {
-    
     const apiUrl = getBaseApiUrl();
     const buyUrl = `${apiUrl}Properties/BuyProperty?PlayerId=${currentPlayer.playerId}&PropertyId=${propertyId}`;
     const buyResponse = await fetch(buyUrl, { method: "POST" });
-  
+
     if (buyResponse.ok) {
       toast("רכישת נכס בוצעה בהצלחה", { type: "success" });
       const updatedPlayerResponse = await fetchPlayerData(
@@ -484,9 +487,8 @@ const deepEqual = (obj1, obj2) => {
     } else {
       toast("רכישת נכס לא צלחה", { type: "error" });
     }
-  
+
     setShowPropertyModal(false);
-    
   };
 
   const handleBuyProperty = async () => {
@@ -494,7 +496,7 @@ const deepEqual = (obj1, obj2) => {
     const apiUrl = getBaseApiUrl();
     const buyUrl = `${apiUrl}Properties/BuyProperty?PlayerId=${currentPlayer.playerId}&PropertyId=${propertyId}`;
     const buyResponse = await fetch(buyUrl, { method: "POST" });
-  
+
     if (buyResponse.ok) {
       toast("רכישת נכס בוצעה בהצלחה", { type: "success" });
       const updatedPlayerResponse = await fetchPlayerData(
@@ -503,15 +505,12 @@ const deepEqual = (obj1, obj2) => {
       if (updatedPlayerResponse.ok) {
         const updatedPlayerData = await updatedPlayerResponse.json();
         updatePlayerDataInState(updatedPlayerData);
-       
       }
     } else {
       toast("רכישת נכס לא צלחה", { type: "error" });
-      
     }
-  
+
     setShowPropertyModal(false);
-   
   };
 
   const fetchPlayerData = (playerId) => {
@@ -564,12 +563,18 @@ const deepEqual = (obj1, obj2) => {
     if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
 
     const result = JSON.parse(responseText);
+    console.log(typeof parseInt(result.moveTo));
+
     setCardData(result);
 
-    isPlayerAI(currentPlayer) ? setShowCard(false) : setShowCard(true);
+    // Show the card modal if the current player is not AI
+    if (!isPlayerAI(currentPlayer)) {
+      setShowCard(true);
+    } else {
+      // Handle AI logic if necessary
+      await handleMovePlayer(parseInt(result.moveTo), currentPlayer);
+    }
   };
-
-
   const handleDidYouKnowSquareType = async (position, currentPlayer) => {
     const apiUrl = getBaseApiUrl();
     const fullUrl = `${apiUrl}Cards/didyouknow`;
@@ -584,22 +589,36 @@ const deepEqual = (obj1, obj2) => {
     const result = JSON.parse(responseText);
     setCardData(result);
 
-    isPlayerAI(currentPlayer) ? setshowDidYouKnowCard(false) : setshowDidYouKnowCard(true);
+    isPlayerAI(currentPlayer)
+      ? setshowDidYouKnowCard(false)
+      : setshowDidYouKnowCard(true);
   };
 
-
-
-  const handleSquareLanding = useCallback(async (currentPlayer) => {
-    if (isHandlingSquareLanding.current) return;
-
-    isHandlingSquareLanding.current = true;
+  const handleMovePlayer = (newPosition, currentPlayer) => {
+    if (currentPlayer) {
+      setPlayers((prevPlayers) =>
+        prevPlayers.map((player) =>
+          player.playerId === currentPlayer.playerId
+            ? { ...player, currentPosition: parseInt(newPosition) }
+            : player
+        )
+      );
+      toast(`שחקן ${currentPlayer.user.username} עבור ל-${newPosition}`, {
+        type: "success",
+      });
+    }
+  };
+  const handleSquareLanding = async (currentPlayer) => {
+    //if (isHandlingSquareLanding.current) return;
+    //isHandlingSquareLanding.current = true;
     const position = currentPlayer.currentPosition;
     const squareType = SquareConfigData.get(position)?.type;
 
     try {
       switch (squareType) {
         case SquareType.Property:
-          await handlePropertySquareType(position, currentPlayer);
+          await //handlePropertySquareType(position, currentPlayer);
+          handlePropertySquareType(position, currentPlayer);
           break;
         case SquareType.Present:
           await handleSurpriseSquareType(position, currentPlayer);
@@ -616,7 +635,7 @@ const deepEqual = (obj1, obj2) => {
           toast("עלייך להיכנס לכלא");
           break;
         case SquareType.GoToJail:
-          toast("Go to Jail! Move directly to jail.");
+          toast("לך לכלא");
           break;
         default:
           toast(`נחתת על משבצת רגילה`, { type: "info" });
@@ -628,7 +647,7 @@ const deepEqual = (obj1, obj2) => {
     } finally {
       isHandlingSquareLanding.current = false;
     }
-  }, []);
+  };
 
   useEffect(() => {
     const currentPlayer = players[currentPlayerIndex];
@@ -770,15 +789,19 @@ const deepEqual = (obj1, obj2) => {
       {showCard && (
         <ChanceCardModal
           show={showCard}
-          onHide={handleCloseCard}
+          onHide={() => {
+            setShowCard(false);
+            handleMovePlayer(cardData.moveTo, players[currentPlayerIndex]);
+          }}
           cardData={cardData}
         />
       )}
       {showDidYouKnowCard && (
         <DidYouKnowCardModal
-         show = {showDidYouKnowCard}
-         onHide={handleCloseCard}
-         cardData={cardData} />
+          show={showDidYouKnowCard}
+          onHide={handleCloseCard}
+          cardData={cardData}
+        />
       )}
       {currentProperty && (
         <PropertyModal

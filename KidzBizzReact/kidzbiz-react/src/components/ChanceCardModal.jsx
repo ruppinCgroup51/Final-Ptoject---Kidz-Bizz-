@@ -1,22 +1,19 @@
 import React, { useState } from "react";
 import { Modal, Button } from "react-bootstrap";
-import "../css/ChanceCard.css"
+import "../css/ChanceCard.css";
 
 const ChanceCardModal = ({ show, onHide, cardData }) => {
   const safeCardData = cardData || {};
 
   return (
-    <Modal show={show} onHide={onHide} className="chance-card-modal"> 
+    <Modal show={show} onHide={onHide} className="chance-card-modal">
       <Modal.Header>
         <Modal.Title>קלף סיכוי</Modal.Title>
       </Modal.Header>
       <Modal.Body>
         <p>
           <strong>תיאור:</strong>
-          <br/> {safeCardData.description ?? "N/A"}
-        </p>
-        <p>
-          <strong>סכום:</strong> {safeCardData.amount ?? "N/A"}
+          <br /> {safeCardData.description ?? "N/A"}
         </p>
         <p>
           <strong>עבור ל:</strong> {safeCardData.moveTo ?? "N/A"}
@@ -34,4 +31,3 @@ const ChanceCardModal = ({ show, onHide, cardData }) => {
   );
 };
 export default ChanceCardModal;
-
