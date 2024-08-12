@@ -194,7 +194,7 @@ const GameBoard = () => {
     } catch (error) {
       console.error("Error:", error);
     }
-  }
+  };
   // Automatically rolls dice and ends the turn if the current player is an AI (with userId 1016).
   // Runs whenever currentPlayerIndex or players change.
   useEffect(() => {
@@ -237,16 +237,15 @@ const GameBoard = () => {
     console.log("endTurn called");
 
     // Update the current player index
-    
+
     setCurrentPlayerIndex((prev) => {
-      const nextIndex = (prev+1) % players.length;
+      const nextIndex = (prev + 1) % players.length;
       if (players[nextIndex].user.userId == 1016) {
         rollDice(nextIndex);
       }
       return nextIndex;
     });
 
-  
     // Log after updating to ensure the state is updated
   };
 
@@ -614,7 +613,12 @@ const GameBoard = () => {
     if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
 
     const result = JSON.parse(responseText);
+
+    console.log(result);
+
     setCardData(result);
+
+    console.log(currentPlayer);
 
     ///   console.log("this the currentPlayer :", currentPlayer);
     ///   if (currentPlayer.user.userId == 1016) {
@@ -718,7 +722,7 @@ const GameBoard = () => {
           toast("לך לכלא");
           break;
         default:
-          toast(`נחתת על משבצת רגילה`, { type: "info" });
+          toast(`נחתת על משבצת צא`, { type: "info" });
           break;
       }
     } catch (error) {
@@ -726,11 +730,11 @@ const GameBoard = () => {
       toast("בעיה בטיפול משבצת נכס", { type: "error" });
     } finally {
       if (currentPlayer.user.userId == 1016) {
-        // const timer = setTimeout(() => {
-        //   endTurn();
-        //   window.clearTimeout(timer);
-        // }, 2000);
-        endTurn();
+        const timer = setTimeout(() => {
+          endTurn();
+          window.clearTimeout(timer);
+        }, 2000);
+        // endTurn();
       }
       isHandlingSquareLanding.current = false;
     }
@@ -879,7 +883,11 @@ const GameBoard = () => {
       </BootstrapModal>
 
       {isModalVisible && (
-        <SurpriseCardModal card={cardData} onClose={handleCloseCard} />
+        <SurpriseCardModal
+          show={isModalVisible}
+          card={cardData}
+          onClose={handleCloseCard}
+        />
       )}
       {showCard && (
         <ChanceCardModal

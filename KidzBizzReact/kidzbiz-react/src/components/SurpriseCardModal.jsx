@@ -2,18 +2,19 @@ import React from "react";
 import { Modal, Button } from "react-bootstrap";
 import "../css/SurpriseCardModal.css"; // Ensure this CSS file exists and is correctly styled
 
-const SurpriseCardModal = ({ card, onClose }) => {
+const SurpriseCardModal = ({ show, card, onClose }) => {
   if (!card) return null;
+  console.log("SurpriseCardModal mounted");
 
   return (
-    <Modal onClose={onClose} className="chance-card-modal"> 
+    <Modal show={show} onClose={onClose} className="chance-card-modal">
       <Modal.Header>
         <Modal.Title>קלף הפתעה</Modal.Title>
       </Modal.Header>
       <Modal.Body>
         <p>
           <strong>תיאור:</strong>
-          <br/> {card.description ?? "N/A"}
+          <br /> {card.description ?? "N/A"}
         </p>
         <p>
           <strong>סכום:</strong> {card.amount ?? "N/A"}
@@ -29,5 +30,3 @@ const SurpriseCardModal = ({ card, onClose }) => {
 };
 
 export default SurpriseCardModal;
-
-
