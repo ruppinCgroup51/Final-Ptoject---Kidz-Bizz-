@@ -613,10 +613,28 @@ const GameBoard = () => {
     if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
 
     const result = JSON.parse(responseText);
-
-    console.log(result);
-
     setCardData(result);
+
+    await updatePlayerBalance(
+      currentPlayer.playerId,
+      currentPlayer.currentBalance,
+      result.amount
+    );
+
+    const newBalance = await getPlayerUpdatedBalance(currentPlayer.playerId);
+    const playerIndex = players.findIndex(
+      (pl) => pl.playerId === currentPlayer.playerId
+    );
+    const newUpdatePlayers = [...players];
+    newUpdatePlayers[playerIndex].currentBalance = newBalance;
+
+    setPlayers((prevPlayers) =>
+      prevPlayers.map((player) =>
+        player.playerId === newUpdatePlayers[playerIndex].playerId
+          ? { ...player, currentBalance: newBalance }
+          : player
+      )
+    );
 
     console.log(currentPlayer);
 
@@ -627,6 +645,47 @@ const GameBoard = () => {
     isPlayerAI(currentPlayer)
       ? setIsModalVisible(false)
       : setIsModalVisible(true);
+  };
+
+  ///api/Players/UpdatePlayerBalance
+  //Take the currentPlayer -> currentPlayer.playerId ,
+
+  const updatePlayerBalance = async (
+    playerId,
+    currentBalance,
+    surpriseValue
+  ) => {
+    console.log("updatePlayerBalance started ");
+    const apiUrl = getBaseApiUrl();
+    const fullUrl = `${apiUrl}Players/UpdatePlayerBalance?playerId=${playerId}&newBalance=${
+      currentBalance + surpriseValue
+    }`;
+    const response = await fetch(fullUrl, {
+      method: "PUT",
+      headers: { Accept: "application/json" },
+    });
+
+    if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+  };
+
+  ///api/Players/GetPlayerBalance
+  const getPlayerUpdatedBalance = async (playerId) => {
+    const apiUrl = getBaseApiUrl();
+    const fullUrl = `${apiUrl}Players/GetPlayerBalance?playerId=${playerId}`;
+    try {
+      const response = await fetch(fullUrl, {
+        method: "GET",
+        headers: { Accept: "application/json" },
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+
+      return data;
+    } catch (error) {
+      console.error("Error from get Updated player", error.message);
+    }
   };
 
   const handleChanceSquareType = async (position, currentPlayer) => {
