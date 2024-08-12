@@ -35,6 +35,8 @@ import AITypeModal from "./AITypeModal.jsx";
 
 Modal.setAppElement("#root"); //sets the root element for the modals to improve accessibility
 
+console.log("Component Mounting ~");
+
 const GameBoard = () => {
   const numSquares = Array.from({ length: 40 }, (_, i) => i + 1); //Array representing the squares on the game board (1 to 40).
   const user = useContext(UserContext); //The current user, retrieved from context.
@@ -59,18 +61,16 @@ const GameBoard = () => {
   const [currentProperty, setCurrentProperty] = useState(null); //The property that is currently being viewed or bought
   const [gameId, SetGameId] = useState(0); // Unique identifier for the game session.
 
-    // new 
+  // new
   const [showAITypeModal, setShowAITypeModal] = useState(false);
   const [aiType, setAIType] = useState("");
 
   const isHandlingSquareLanding = useRef(false); //A ref to track if the square landing logic is currently being handled, preventing multiple simultaneous operations.
   const currentPlayerRef = useRef(currentPlayerIndex); //A ref to track the currentPlayer.
 
-  
-
   //Initializes the game by fetching or loading player data from local storage or the server. Runs once when the component mounts.
   useEffect(() => {
-    setCurrentPlayerIndex(0);
+    //setCurrentPlayerIndex(0);
     setIsRollDiceDisabled(false);
     setIsEndTurnDisabled(false);
 
@@ -107,7 +107,7 @@ const GameBoard = () => {
       setPlayers(JSON.parse(storedPlayers));
       SetGameId(storedGameId);
 
-      //new 
+      //new
       const aiPlayer = JSON.parse(storedPlayers)[1];
       if (aiPlayer) {
         let typeDescription = "";
@@ -128,7 +128,6 @@ const GameBoard = () => {
         setAIType(typeDescription);
         setShowAITypeModal(true);
       }
-
     } else {
       fetchData();
     }
@@ -146,7 +145,36 @@ const GameBoard = () => {
     }
   }, []);
 
-  const rollDice = useCallback(async () => {
+  const rollDiceOld = useCallback(
+    async (currentIndex) => {
+      let currentPlayerIndex = currentIndex;
+      console.log("Current Player index - ", currentPlayerIndex);
+      const apiUrl = getApiUrl("rolldice");
+      try {
+        const response = await fetch(apiUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(players[currentPlayerIndex]),
+        });
+
+        if (!response.ok)
+          throw new Error(`HTTP error! status: ${response.status}`);
+
+        const data = await response.json();
+        const updatedPlayers = [...players];
+        updatedPlayers[currentPlayerIndex] = data;
+        setPlayers(updatedPlayers);
+        handleSquareLanding(updatedPlayers[currentPlayerIndex]);
+      } catch (error) {
+        console.error("Error:", error);
+      }
+    },
+    [players]
+  );
+
+  const rollDice = async (currentIndex) => {
+    let currentPlayerIndex = currentIndex;
+    console.log("Current Player index - ", currentPlayerIndex);
     const apiUrl = getApiUrl("rolldice");
     try {
       const response = await fetch(apiUrl, {
@@ -162,27 +190,30 @@ const GameBoard = () => {
       const updatedPlayers = [...players];
       updatedPlayers[currentPlayerIndex] = data;
       setPlayers(updatedPlayers);
+      handleSquareLanding(updatedPlayers[currentPlayerIndex]);
     } catch (error) {
       console.error("Error:", error);
     }
-  }, [currentPlayerIndex, players]);
-
+  }
   // Automatically rolls dice and ends the turn if the current player is an AI (with userId 1016).
   // Runs whenever currentPlayerIndex or players change.
   useEffect(() => {
     currentPlayerRef.current = currentPlayerIndex;
+    console.log("This use effect happen outside");
     if (players[currentPlayerIndex]?.user.userId === 1016) {
+      console.log("This use effect happen inside");
       setIsRollDiceDisabled(true);
-      const timer = setTimeout(() => {
-        rollDice().then(() => {
-          endTurn();
-        });
-      }, 2000); // 15000 milliseconds = 15 seconds
+      // const timer = setTimeout(() => {
+      //   rollDice().then(() => {
+      //     endTurn();
+      //   });
+      // }, 2000);
+      // 15000 milliseconds = 15 seconds
 
       // Clear timeout if the component unmounts or if the effect runs again before the timer completes
-      return () => clearTimeout(timer);
+      // return () => clearTimeout(timer);
     }
-  }, [currentPlayerIndex, players]);
+  }, [currentPlayerIndex /*, players*/]);
 
   //Saves the players' state to local storage whenever it changes.
   useEffect(() => {
@@ -203,16 +234,20 @@ const GameBoard = () => {
     setShowPropertyModal(false);
 
     // Log before updating the index to track changes
-    console.log(
-      "endTurn called, currentPlayerIndex before:",
-      currentPlayerIndex
-    );
+    console.log("endTurn called");
 
     // Update the current player index
-    setCurrentPlayerIndex((prevIndex) => (prevIndex + 1) % players.length);
+    
+    setCurrentPlayerIndex((prev) => {
+      const nextIndex = (prev+1) % players.length;
+      if (players[nextIndex].user.userId == 1016) {
+        rollDice(nextIndex);
+      }
+      return nextIndex;
+    });
 
+  
     // Log after updating to ensure the state is updated
-    console.log("currentPlayerIndex updated");
   };
 
   //n: This function handles the event when a player clicks the "Roll Dice" button.
@@ -221,7 +256,7 @@ const GameBoard = () => {
   const handleRollDiceClick = async () => {
     setIsRollDiceDisabled(true);
     setIsEndTurnDisabled(false);
-    await rollDice();
+    await rollDice(currentPlayerIndex);
     setDisplayDice(players[currentPlayerIndex].user.userId);
   };
 
@@ -392,6 +427,10 @@ const GameBoard = () => {
 
     if (owner === -1) {
       // Property has no owner, fetch property details
+      //  console.log("this the currentPlayer :", currentPlayer);
+      //  if (currentPlayer.user.userId == 1016) {
+      //    throw new Error("this is error");
+      //  }
 
       if (isPlayerAI(currentPlayer)) {
         setShowPropertyModal(false);
@@ -577,6 +616,10 @@ const GameBoard = () => {
     const result = JSON.parse(responseText);
     setCardData(result);
 
+    ///   console.log("this the currentPlayer :", currentPlayer);
+    ///   if (currentPlayer.user.userId == 1016) {
+    ///     throw new Error("this is error");
+    ///   }
     isPlayerAI(currentPlayer)
       ? setIsModalVisible(false)
       : setIsModalVisible(true);
@@ -598,6 +641,10 @@ const GameBoard = () => {
 
     setCardData(result);
 
+    // console.log("this the currentPlayer :", currentPlayer);
+    // if (currentPlayer.user.userId == 1016) {
+    //   throw new Error("this is error");
+    // }
     // Show the card modal if the current player is not AI
     if (!isPlayerAI(currentPlayer)) {
       setShowCard(true);
@@ -619,7 +666,10 @@ const GameBoard = () => {
 
     const result = JSON.parse(responseText);
     setCardData(result);
-
+    //   console.log("this the currentPlayer :", currentPlayer);
+    //   if (currentPlayer.user.userId == 1016) {
+    //     throw new Error("this is error");
+    //   }
     isPlayerAI(currentPlayer)
       ? setshowDidYouKnowCard(false)
       : setshowDidYouKnowCard(true);
@@ -648,8 +698,7 @@ const GameBoard = () => {
     try {
       switch (squareType) {
         case SquareType.Property:
-          await //handlePropertySquareType(position, currentPlayer);
-          handlePropertySquareType(position, currentPlayer);
+          await handlePropertySquareType(position, currentPlayer);
           break;
         case SquareType.Present:
           await handleSurpriseSquareType(position, currentPlayer);
@@ -676,6 +725,13 @@ const GameBoard = () => {
       console.error("Error during square landing actions:", error);
       toast("בעיה בטיפול משבצת נכס", { type: "error" });
     } finally {
+      if (currentPlayer.user.userId == 1016) {
+        // const timer = setTimeout(() => {
+        //   endTurn();
+        //   window.clearTimeout(timer);
+        // }, 2000);
+        endTurn();
+      }
       isHandlingSquareLanding.current = false;
     }
   };
@@ -683,10 +739,12 @@ const GameBoard = () => {
   useEffect(() => {
     const currentPlayer = players[currentPlayerIndex];
     if (currentPlayer) {
-      console.log("Current player:", currentPlayer);
-      handleSquareLanding(currentPlayer);
+      //handleSquareLanding(currentPlayer);
+    } else {
+      console.log("There is no player.");
     }
-  }, [currentPlayerIndex, players]);
+    console.log("handleSquareLanding UseEffect is happen");
+  }, [currentPlayerIndex]);
 
   // Handles the countdown timer before the game starts. Starts the game when the countdown reaches zero.
   useEffect(() => {
@@ -740,13 +798,13 @@ const GameBoard = () => {
 
   return (
     <>
-       {/* AI Type Modal */}
-       <AITypeModal 
-        show={showAITypeModal} 
-        onHide={() => setShowAITypeModal(false)} 
-        aiType={aiType} 
+      {/* AI Type Modal */}
+      <AITypeModal
+        show={showAITypeModal}
+        onHide={() => setShowAITypeModal(false)}
+        aiType={aiType}
       />
-      <button class="endgameBTN" onClick={handleEndGame}>
+      <button className="endgameBTN" onClick={handleEndGame}>
         סיים משחק
       </button>
       <div className="current-player">
