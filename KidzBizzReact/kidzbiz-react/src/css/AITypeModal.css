@@ -1,0 +1,59 @@
+/* AITypeModal.css */
+
+.ai-type-modal .modal-header {
+    background-color: #4d56a3;; /* Bright Yellow */
+    font-family: 'Comic Sans MS', cursive, sans-serif;
+    direction: rtl;
+  }
+  
+  .ai-type-modal .modal-title {
+    color: #ff33cc; /* Hot Pink */
+    font-size: 26px;
+    font-weight: bold;
+    direction: rtl;
+
+  }
+  
+  .ai-type-modal .modal-body {
+    background-color: #4d56a3; /* Sky Blue */
+    color: #ffffff; /* White */
+    font-size: 20px;
+    text-align: center;
+    font-family: 'Arial', sans-serif;
+    direction: rtl;
+
+  }
+  
+  .ai-type-modal .modal-footer {
+    background-color: #4d56a3;  /* Bright Yellow */
+    display: flex;
+    justify-content: center;
+  }
+  
+  .start-game-button {
+    background-color: #1ae0af;  /* Turquoise */
+    color: #ffffff; /* White */
+    border: none;
+    font-size: 18px;
+    padding: 10px 20px;
+    transition: background-color 0.5s ease;
+    font-family: 'Comic Sans MS', cursive, sans-serif;
+  }
+  
+  .start-game-button:hover {
+    background-color: #ff6600; /* Orange */
+    color: #ffffff; /* White */
+  }
+  
+  @keyframes color-change {
+    0% { background-color: #00cc99; } /* Turquoise */
+    25% { background-color: #ff6600; } /* Orange */
+    50% { background-color: #cc33ff; } /* Purple */
+    75% { background-color: #ff0033; } /* Red */
+    100% { background-color: #7a00cc; } /* Turquoise */
+  }
+  
+  .start-game-button {
+    animation: color-change 3s infinite;
+  }
+  

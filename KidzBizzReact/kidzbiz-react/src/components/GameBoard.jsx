@@ -31,6 +31,8 @@ import "react-toastify/dist/ReactToastify.css";
 import { useNavigate } from "react-router-dom";
 import DidYouKnowCardModal from "./DidYouKnow.jsx";
 
+import AITypeModal from "./AITypeModal.jsx";
+
 Modal.setAppElement("#root"); //sets the root element for the modals to improve accessibility
 
 const GameBoard = () => {
@@ -57,8 +59,14 @@ const GameBoard = () => {
   const [currentProperty, setCurrentProperty] = useState(null); //The property that is currently being viewed or bought
   const [gameId, SetGameId] = useState(0); // Unique identifier for the game session.
 
+    // new 
+  const [showAITypeModal, setShowAITypeModal] = useState(false);
+  const [aiType, setAIType] = useState("");
+
   const isHandlingSquareLanding = useRef(false); //A ref to track if the square landing logic is currently being handled, preventing multiple simultaneous operations.
   const currentPlayerRef = useRef(currentPlayerIndex); //A ref to track the currentPlayer.
+
+  
 
   //Initializes the game by fetching or loading player data from local storage or the server. Runs once when the component mounts.
   useEffect(() => {
@@ -98,6 +106,29 @@ const GameBoard = () => {
     if (storedPlayers && storedGameId) {
       setPlayers(JSON.parse(storedPlayers));
       SetGameId(storedGameId);
+
+      //new 
+      const aiPlayer = JSON.parse(storedPlayers)[1];
+      if (aiPlayer) {
+        let typeDescription = "";
+        switch (aiPlayer.playerType) {
+          case 1:
+            typeDescription = "הרפתקן";
+            break;
+          case 2:
+            typeDescription = "מאוזן";
+            break;
+          case 3:
+            typeDescription = "שמרן";
+            break;
+          default:
+            typeDescription = "לא ידוע";
+        }
+
+        setAIType(typeDescription);
+        setShowAITypeModal(true);
+      }
+
     } else {
       fetchData();
     }
@@ -709,6 +740,12 @@ const GameBoard = () => {
 
   return (
     <>
+       {/* AI Type Modal */}
+       <AITypeModal 
+        show={showAITypeModal} 
+        onHide={() => setShowAITypeModal(false)} 
+        aiType={aiType} 
+      />
       <button class="endgameBTN" onClick={handleEndGame}>
         סיים משחק
       </button>
