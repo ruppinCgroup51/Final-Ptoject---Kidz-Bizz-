@@ -1,50 +1,72 @@
 /* PropertyModal.css */
 .property-modal .modal-content {
-    background-color: #71b1c5;
-    border-radius: 8px;
-    padding: 20px;
-    box-shadow: 0 4px 8px rgba(255, 255, 255, 0.2);
-    text-align: right;
-    direction: rtl;
-    color:white;
-  }
-  
-  .property-modal .modal-header {
-    border-bottom: 1px solid #dee2e6;
-  }
-  
-  .property-modal .modal-title {
-    font-size: 1.5rem;
-    font-weight: bold;
-    text-align: center; /* Aligns the title to the right */
-    width: 100%;
-  }
-  
-  .property-modal .modal-body {
-    text-align: right; /* Aligns the body text to the right */
-    font-size: 1rem;
-    line-height: 1.5;
-  }
-  
-  .property-modal .modal-footer {
-    border-top: 1px solid #dee2e6;
-    display: flex;
-    justify-content: space-between; /* Spaces the buttons */
-  }
-  
-  .property-modal .btn {
-    border-radius: 4px;
-    padding: 0.5rem 1rem;
-    width: 100px;
-  }
-  
-  .property-modal .btn-primary {
-    background-color: #14e02b;
-    border-color: #14e02b;
-  }
-  
-  .property-modal .btn-secondary {
-    background-color: #e80f0f;
-    border-color: #e80f0f;
-  }
-  
+  border-radius: 10px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  padding: 20px;
+  direction: rtl; /* Ensure right-to-left alignment */
+}
+
+.property-modal .modal-header {
+  border-bottom: none;
+  text-align: center;
+  padding-bottom: 0;
+}
+
+.property-modal .modal-title {
+  color: #e74c3c;
+  font-size: 24px;
+  font-weight: bold;
+}
+
+.property-modal .modal-body {
+  text-align: right;
+  font-size: 16px;
+  color: #333;
+}
+
+.property-modal .modal-footer {
+  border-top: none;
+  display: flex;
+  justify-content: space-between; /* Distribute buttons evenly */
+}
+
+.property-modal .modal-footer .btn-secondary {
+  background-color: #95a5a6;
+  border-color: #95a5a6;
+  width: 100px;
+  margin-left: 10px;
+}
+
+.property-modal .modal-footer .btn-primary {
+  background-color: #3498db;
+  border-color: #3498db;
+  width: 100px;
+}
+
+.rtl-button {
+  width: 100px;
+  text-align: center;
+}
+
+.property-modal .modal-body p {
+  margin: 5px 0;
+  font-size: 18px;
+}
+
+.property-modal .modal-footer .btn {
+  font-size: 16px;
+  padding: 10px;
+  border-radius: 5px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: background-color 0.3s ease;
+}
+
+.property-modal .modal-footer .btn-primary:hover {
+  background-color: #2980b9;
+  border-color: #2980b9;
+}
+
+.property-modal .modal-footer .btn-secondary:hover {
+  background-color: #7f8c8d;
+  border-color: #7f8c8d;
+}

@@ -30,6 +30,7 @@ import getBaseApiUrl from "./GetBaseApi";
 import "react-toastify/dist/ReactToastify.css";
 import { useNavigate } from "react-router-dom";
 import DidYouKnowCardModal from "./DidYouKnow.jsx";
+import monopolyMusic from "../components/music/monopolyMusic.mp3";
 
 import AITypeModal from "./AITypeModal.jsx";
 
@@ -68,6 +69,41 @@ const GameBoard = () => {
   const isHandlingSquareLanding = useRef(false); //A ref to track if the square landing logic is currently being handled, preventing multiple simultaneous operations.
   const currentPlayerRef = useRef(currentPlayerIndex); //A ref to track the currentPlayer.
 
+  //monopolyGame
+  useEffect(() => {
+    const audio = new Audio(monopolyMusic);
+    audio.loop = true; // Make the music loop
+    audio.volume = 0; // Set volume to 10%
+
+    // Restore the playback position if available
+    const savedTime = sessionStorage.getItem("backgroundMusicTime");
+    console.log(savedTime);
+    if (savedTime) {
+      audio.currentTime = parseFloat(savedTime);
+    }
+
+    audio.play();
+
+    // Save the playback position before unmounting
+    const saveCurrentTime = () => {
+      sessionStorage.setItem("backgroundMusicTime", audio.currentTime);
+    };
+
+    // Save the time when the user is about to leave the page
+    window.addEventListener("beforeunload", saveCurrentTime);
+
+    return () => {
+      // Save the current time to sessionStorage on component unmount
+      saveCurrentTime();
+
+      // Pause the audio and reset the current time
+      audio.pause();
+      audio.currentTime = 0;
+
+      // Clean up the event listener
+      window.removeEventListener("beforeunload", saveCurrentTime);
+    };
+  }, []);
   //Initializes the game by fetching or loading player data from local storage or the server. Runs once when the component mounts.
   useEffect(() => {
     //setCurrentPlayerIndex(0);
@@ -313,7 +349,7 @@ const GameBoard = () => {
         alert(`${winner.user.username} המשחק נגמר !! המנצח הוא `);
 
         // After displaying the message, navigate back to the lobby
-        navigate("/Lobi");
+        handleClose();
       } catch (error) {
         console.error("Error ending game:", error);
         alert("An error occurred while trying to end the game.");
@@ -322,6 +358,9 @@ const GameBoard = () => {
       // If the user cancels, just close the pop-up and do nothing
       console.log("User chose to continue the game.");
     }
+  };
+  const handleClose = () => {
+    navigate("/Lobi"); // Navigate back to the Lobi page
   };
 
   //This function displays the appropriate card modal (Surprise or Chance) based on the type and the player who landed on the square.
@@ -353,54 +392,100 @@ const GameBoard = () => {
     return diceIcons[number] || null;
   };
 
-  const PlayerProperties = ({ player }) => {
+  const PlayerProperties = ({ player, isModalOpen, setIsModalOpen }) => {
     if (!player) return null;
 
     return (
       <Modal
-        isOpen={isModalOpen}
-        onRequestClose={() => setIsModalOpen(false)}
+        isOpen={isModalOpen} // Control modal visibility
+        onRequestClose={() => setIsModalOpen(false)} // Close modal on request
         style={{
-          maxWidth: "600px",
-          width: "50%",
-          margin: "auto",
-          position: "relative",
+          content: {
+            maxWidth: "600px",
+            width: "90%",
+            margin: "auto",
+            padding: "20px",
+            backgroundColor: "#f9f9f9",
+            borderRadius: "10px",
+            boxShadow: "0 4px 8px rgba(0, 0, 0, 0.2)",
+            position: "relative",
+          },
+          overlay: {
+            backgroundColor: "rgba(0, 0, 0, 0.5)",
+          },
         }}
       >
         <h2
           style={{
-            position: "relative",
             textAlign: "right",
-            color: "red",
-            fontFamily: "cursive",
+            color: "#e74c3c",
+            fontFamily: "Arial, sans-serif",
+            marginBottom: "20px",
+            direction: "rtl",
           }}
         >
-          {player.user.firstName} הנכסים של{" "}
+          הנכסים של {player.user.firstName}
         </h2>
         {player.properties && player.properties.length > 0 ? (
           player.properties.map((property, index) => (
-            <div key={index} style={{ color: "black", textAlign: "right" }}>
-              <p>מזהה נכס: {property.propertyId}</p>
-              <p>שם נכס: {property.propertyName}</p>
-              <p>מחיר נכס: {property.propertyPrice}</p>
+            <div
+              key={index}
+              style={{
+                color: "#333",
+                textAlign: "right",
+                marginBottom: "15px",
+                padding: "10px",
+                borderRadius: "5px",
+                backgroundColor: "#f5f5f5",
+                boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
+                borderBottom: "1px solid #ddd",
+              }}
+            >
+              <p style={{ margin: "5px 0" }}>מזהה נכס: {property.propertyId}</p>
+              <p style={{ margin: "5px 0" }}>שם נכס: {property.propertyName}</p>
+              <p style={{ margin: "5px 0" }}>
+                מחיר נכס: {property.propertyPrice}
+              </p>
             </div>
           ))
         ) : (
           <p
-            style={{ position: "relative", textAlign: "right", color: "black" }}
+            style={{
+              textAlign: "right",
+              color: "#888",
+              fontStyle: "italic",
+              padding: "10px",
+              backgroundColor: "#f5f5f5",
+              borderRadius: "5px",
+            }}
           >
             אין נכסים
           </p>
         )}
+        <br />
+        <br />
+        <br />
         <button
           style={{
             position: "absolute",
-            left: "10px",
-            bottom: "10px",
+            left: "20px",
+            bottom: "20px",
+            padding: "10px 20px",
             color: "white",
-            backgroundColor: "red",
+            backgroundColor: "#e74c3c",
+            border: "none",
+            borderRadius: "5px",
+            cursor: "pointer",
+            boxShadow: "0 2px 4px rgba(0, 0, 0, 0.2)",
+            transition: "background-color 0.3s ease",
           }}
-          onClick={() => setIsModalOpen(false)}
+          onClick={() => setIsModalOpen(false)} // Close modal on button click
+          onMouseOver={(e) =>
+            (e.currentTarget.style.backgroundColor = "#c0392b")
+          }
+          onMouseOut={(e) =>
+            (e.currentTarget.style.backgroundColor = "#e74c3c")
+          }
         >
           סגור
         </button>
@@ -454,38 +539,59 @@ const GameBoard = () => {
           });
         }
       }
-    } /*else if (owner !== currentPlayer.playerId) {
-    const rentUrl = `${apiUrl}GameManagerWithAI/payRent`;
-    const rentResponse = await fetch(rentUrl, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        playerId: currentPlayer.playerId,
-        propertyOwnerId: owner,
-        propertyId: position,
-      }),
-    });
-
-    if (rentResponse.ok) {
-      /*toast("Rent paid successfully!", { type: "info" });
-
-      const updatedPlayerResponse = await fetchPlayerData(
-        currentPlayer.playerId
-      );
-
-      if (updatedPlayerResponse.ok) {
-        const updatedPlayerData = await updatedPlayerResponse.json();
-        
-        // Prevent infinite loop by ensuring setPlayers is not called unnecessarily
-        if (!deepEqual(players, updatedPlayerData)) { // deepEqual is a utility function to compare objects deeply
-          updatePlayerDataInState(updatedPlayerData);
-        }
-      }
-    } else {
-      toast("Failed to pay rent.", { type: "error" });
     }
-  }*/
   };
+  // } else if (owner.ownerId !== currentPlayer.playerId) {
+  //   console.log(owner);
+  //   console.log(owner.ownerId);
+  //   const rentUrl = `${apiUrl}GameManagerWithAI/payRent`;
+
+  //   const rentResponse = await fetch(rentUrl, {
+  //     method: "POST",
+  //     headers: { "Content-Type": "application/json" },
+  //     body: JSON.stringify({
+  //       playerId: currentPlayer.playerId,
+  //       propertyOwnerId: owner.ownerId,
+  //       propertyId: position,
+  //     }),
+  //   });
+
+  //   if (rentResponse.ok) {
+  //     console.log("Rent payment post request successfull");
+
+  //     const newBalanceAfterRent = await getPlayerUpdatedBalance(
+  //       currentPlayer.playerId
+  //     );
+  //     console.log("New balance after rent:", newBalanceAfterRent);
+
+  //     const playerInd = players.findIndex(
+  //       (pl) => pl.playerId === currentPlayer.playerId
+  //     );
+  //     const updatedPlayers = [...players];
+  //     updatedPlayers[playerInd].currentBalance = newBalanceAfterRent;
+
+  //     setPlayers((prevPlayers) =>
+  //       prevPlayers.map((player) =>
+  //         player.playerId === currentPlayer.playerId
+  //           ? { ...player, currentBalance: newBalanceAfterRent }
+  //           : player
+  //       )
+  //     );
+  //     // toast("Rent paid successfully!", { type: "info" });
+
+  //     // if (updatedPlayerResponse.ok) {
+  //     //   const updatedPlayerData = await updatedPlayerResponse.json();
+
+  //     //   // Prevent infinite loop by ensuring setPlayers is not called unnecessarily
+  //     //   if (!deepEqual(players, updatedPlayerData)) {
+  //     //     // deepEqual is a utility function to compare objects deeply
+  //     //     updatePlayerDataInState(updatedPlayerData);
+  //     //   }
+  //   } else {
+  //     toast("Failed to pay rent.", { type: "error" });
+  //   }
+  // }
+  // };
 
   const fetchAIBuyProperty = async (playerType) => {
     const apiUrl = getBaseApiUrl();
@@ -738,7 +844,7 @@ const GameBoard = () => {
       : setshowDidYouKnowCard(true);
   };
 
-  const handleMovePlayer = (newPosition, currentPlayer) => {
+  const handleMovePlayer = async (newPosition, currentPlayer) => {
     if (currentPlayer) {
       setPlayers((prevPlayers) =>
         prevPlayers.map((player) =>
@@ -752,6 +858,7 @@ const GameBoard = () => {
       });
     }
   };
+
   const handleSquareLanding = async (currentPlayer) => {
     //if (isHandlingSquareLanding.current) return;
     //isHandlingSquareLanding.current = true;
@@ -775,10 +882,37 @@ const GameBoard = () => {
         case SquareType.Go:
           break;
         case SquareType.Jail:
-          toast("עלייך להיכנס לכלא");
+          toast(" באסה,דרכת על משבצת כלא!", {
+            position: "top-center",
+            autoClose: 3000, // Auto close after 3 seconds
+            hideProgressBar: true,
+            style: {
+              borderRadius: "10px",
+              background: "#333",
+              color: "#fff",
+            },
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+            rtl: true, // This ensures right-to-left text support for Hebrew
+          });
           break;
         case SquareType.GoToJail:
-          toast("לך לכלא");
+          toast("באסה עצר אותך שוטר ,אתה נידון לכלא ", {
+            position: "top-center",
+            autoClose: 3000, // Auto close after 3 seconds
+            hideProgressBar: true,
+            style: {
+              borderRadius: "10px",
+              background: "#333",
+              color: "#fff",
+            },
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+            rtl: true, // This ensures right-to-left text support for Hebrew
+          });
+          await handleMovePlayer(11, currentPlayer);
           break;
         default:
           toast(`נחתת על משבצת צא`, { type: "info" });
@@ -887,6 +1021,11 @@ const GameBoard = () => {
             <div className="players-info">
               {players.map((player, index) => (
                 <div key={index} className="player-info">
+                  <img
+                    src={player.user.avatarPicture}
+                    alt={`${player.user.firstName} avatar`}
+                    className="player-avatar"
+                  />
                   <h3>
                     {player.user.firstName} - שחקן {index + 1}
                   </h3>
@@ -932,10 +1071,15 @@ const GameBoard = () => {
               <br />
             </div>
           </div>
-          <PlayerProperties player={selectedPlayer} />
+          {selectedPlayer && (
+            <PlayerProperties
+              player={selectedPlayer}
+              isModalOpen={isModalOpen}
+              setIsModalOpen={setIsModalOpen}
+            />
+          )}
         </div>
       </div>
-
       <BootstrapModal show={modalSquareIsOpen} onHide={handleCloseCard}>
         <h2>{modalContent}</h2>
         <button onClick={handleCloseCard}>סגור</button>

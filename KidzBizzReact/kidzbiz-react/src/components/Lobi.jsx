@@ -28,26 +28,27 @@ export default function Lobi() {
     }
 
     const setUserApi = () => {
-      if (location.hostname === "localhost" || location.hostname === "127.0.0.1") {
-        return 'https://localhost:7034/api/GameManagerWithAI/startnewgame';
+      if (
+        location.hostname === "localhost" ||
+        location.hostname === "127.0.0.1"
+      ) {
+        return "https://localhost:7034/api/GameManagerWithAI/startnewgame";
       } else {
-        return 'https://proj.ruppin.ac.il/cgroup51/test2/tar1/api/GameManagerWithAI/startnewgame';
+        return "https://proj.ruppin.ac.il/cgroup51/test2/tar1/api/GameManagerWithAI/startnewgame";
       }
     };
-  
+
     const apiUrl = setUserApi();
 
     try {
-      const response = await fetch(apiUrl,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            // Include other headers as needed, e.g., authorization tokens
-          },
-          body: JSON.stringify(user), // Send the user ID in the request body
-        }
-      );
+      const response = await fetch(apiUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          // Include other headers as needed, e.g., authorization tokens
+        },
+        body: JSON.stringify(user), // Send the user ID in the request body
+      });
 
       if (response.ok) {
         // If the server responds that the game has started successfully
@@ -71,12 +72,6 @@ export default function Lobi() {
           <Link to="/game-guide" className="navbar-btn darkpurple">
             <FontAwesomeIcon icon={faBook} />
           </Link>
-          <Link to="/accessibility" className="navbar-btn">
-            <FontAwesomeIcon icon={faUniversalAccess} />
-          </Link>
-          <Link to="/find-friends" className="navbar-btn deepblue">
-            <FontAwesomeIcon icon={faSearch} />
-          </Link>
         </div>
         <Box
           sx={{
@@ -85,8 +80,15 @@ export default function Lobi() {
             flexDirection: "row-reverse",
           }}
         >
-          
-          <Avatar alt="User avatar" src={user.avatarPicture} sx={{ ml: 2 }} />
+          <Avatar
+            alt="User avatar"
+            src={user.avatarPicture}
+            sx={{
+              ml: 2,
+              width: 64, // Set the desired width
+              height: 64, // Set the desired height
+            }}
+          />
           <Box
             sx={{
               display: "flex",
@@ -94,7 +96,6 @@ export default function Lobi() {
               alignItems: "flex-end",
             }}
           >
-            
             <Typography variant="h5" color="text.secondary">
               שלום
             </Typography>
@@ -106,7 +107,6 @@ export default function Lobi() {
                 flexDirection: "row-reverse",
               }}
             >
-              
               <Typography variant="h6">מקום 36</Typography>
               <EmojiEventsIcon color="action" />
             </Box>

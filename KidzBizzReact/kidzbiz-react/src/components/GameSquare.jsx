@@ -44,26 +44,51 @@ export const GameSquare = ({ id, players }) => {
     return "game-square-" + id;
   };
 
-  const getAvatarStyle = (position) => {
+  // const getAvatarStyle = (position) => {
+  //   if (position >= 1 && position <= 11) {
+  //     return {
+  //       top: "-30px",
+  //     };
+  //   } else if (position > 11 && position <= 21) {
+  //     return {
+  //       right: "110px",
+  //       top: "-50px",
+  //     };
+  //   } else if (position > 21 && position <= 31) {
+  //     return {
+  //       top: "-50px",
+  //     };
+  //   } else if (position > 31 && position <= 40) {
+  //     return {
+  //       left: "65px",
+  //       top: "-50px",
+  //     };
+  //   }
+  //   return {};
+  // };
+  const getAvatarStyle = (position, index) => {
+    const offset = index * 10; // Adjust this value to control the offset between avatars
+
     if (position >= 1 && position <= 11) {
       return {
-        top: "-30px",
+        top: `calc(-30px + ${offset}px)`,
       };
     } else if (position > 11 && position <= 21) {
       return {
-        right: "110px",
-        top: "-50px",
+        right: `calc(110px + ${offset}px)`,
+        top: `calc(-50px + ${offset}px)`,
       };
     } else if (position > 21 && position <= 31) {
       return {
-        top: "-50px",
+        top: `calc(-50px + ${offset}px)`,
       };
     } else if (position > 31 && position <= 40) {
       return {
-        left: "65px",
-        top: "-50px",
+        left: `calc(65px + ${offset}px)`,
+        top: `calc(-50px + ${offset}px)`,
       };
     }
+
     return {};
   };
 
@@ -91,7 +116,7 @@ export const GameSquare = ({ id, players }) => {
               src={player["user"]["avatarPicture"]}
               alt="avatar"
               className="avatar"
-              style={getAvatarStyle(player.currentPosition)}
+              style={getAvatarStyle(player.currentPosition, index)}
             />
           ))}
       </div>

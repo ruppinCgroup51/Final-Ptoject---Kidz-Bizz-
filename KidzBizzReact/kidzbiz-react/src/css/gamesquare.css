@@ -22,8 +22,5 @@
     -50%,
     -50%
   ); /* Offset by half its width/height for perfect centering */
-}
-
-.avatar {
   border: 1px solid black; /* Temporary border to see the avatar's position */
 }
