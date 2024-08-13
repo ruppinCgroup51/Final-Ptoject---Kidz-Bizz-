@@ -73,7 +73,7 @@ const GameBoard = () => {
   useEffect(() => {
     const audio = new Audio(monopolyMusic);
     audio.loop = true; // Make the music loop
-    audio.volume = 0; // Set volume to 10%
+    audio.volume = 0.1; // Set volume to 10%
 
     // Restore the playback position if available
     const savedTime = sessionStorage.getItem("backgroundMusicTime");
